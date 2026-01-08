@@ -2,6 +2,13 @@
 
 A simple, browser-based tool to generate labeled jigsaw puzzles optimized for laser cutting.
 
+## 🚀 Use the Tool
+**Click here to run the generator:** ### 👉 [Open Jigsaw Generator]([YOUR-LINK-HERE])
+
+*(No download required! Runs directly in your browser.)*
+
+---
+
 ## Why this was created
 This tool was built to create **educational learning tools for schools**. 
 
@@ -18,18 +25,17 @@ This allows teachers and makers to easily create "match the pairs" games, math p
 * **Customizable:** Adjust grid size, puzzle size, jitter (randomness), and tab size.
 
 ## How to use
-1.  Download the `jigsaw.html` file.
-2.  Open it in any modern web browser (Chrome, Edge, Safari).
-3.  Configure your puzzle size and grid.
-4.  Enter your text in the "Labels" box (comma separated).
-5.  Click **Download SVG**.
-6.  Import the SVG into your laser software.
+1.  Click the link above to open the tool.
+2.  Configure your puzzle size and grid.
+3.  Enter your text in the "Labels" box (comma separated).
+4.  Click **Download SVG**.
+5.  Import the SVG into your laser software.
 
 ## Credits & License
 This project is licensed under the **Creative Commons Attribution-ShareAlike 4.0 International License (CC-BY-SA 4.0)**.
 
 * **Original Code:** Based on the work by [Draradech](https://github.com/Draradech/jigsaw), originally licensed under CC-BY-SA.
-* **modifications:** Updated UI, added laser-specific stroke settings, and integrated Google Fonts.
+* **Modifications:** Updated UI, added laser-specific stroke settings, and integrated Google Fonts.
 * **Development:** Created with the assistance of AI.
 
 You are free to share and adapt this material, as long as you give appropriate credit and distribute your contributions under the same license.
