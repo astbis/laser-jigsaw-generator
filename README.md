@@ -3,7 +3,7 @@
 A simple, browser-based tool to generate labeled jigsaw puzzles optimized for laser cutting.
 
 ## 🚀 Use the Tool
-**Click here to run the generator:** ### 👉 [Open Jigsaw Generator]([YOUR-LINK-HERE])
+**Click here to run the generator:** ### 👉 [Open Jigsaw Generator](https://astbis.github.io/laser-jigsaw-generator/jigsaw_puzzle.html)
 
 *(No download required! Runs directly in your browser.)*
 
