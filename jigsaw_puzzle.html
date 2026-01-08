@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laser Jigsaw Generator</title>
+    
+    <style>
+        :root {
+            --primary: #dc2626; /* Red for Laser theme */
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --border-color: #d1d5db;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 { margin-top: 0; color: #111827; }
+
+        /* Modern Card Layout */
+        .config-panel {
+            background-color: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .control-grid { grid-template-columns: 1fr; }
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        input[type="text"], 
+        input[type="number"], 
+        select, 
+        textarea {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box; 
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: monospace;
+        }
+
+        .range-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        input[type="range"] {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+        .value-display {
+            font-family: monospace;
+            font-size: 0.9rem;
+            width: 45px;
+            text-align: right;
+            color: #6b7280;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+        button:hover { background-color: #b91c1c; }
+
+        #puzzlecontainer {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #e5e7eb;
+            background: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .divider {
+            grid-column: 1 / -1;
+            border-bottom: 2px solid #f3f4f6;
+            margin: 15px 0 10px 0;
+            padding-bottom: 5px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #9ca3af;
+        }
+
+        /* Footer Credits */
+        .credits {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.8rem;
+            color: #6b7280;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .credits a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        .credits a:hover { text-decoration: underline; }
+    </style>
+    
+    <script type="text/javascript">
+        // --- 1. FONTS CONFIGURATION ---
+        const fonts = {
+            "Caveat": { family: "Caveat", url: "family=Caveat:wght@400" },
+            "Edu SA Beginner": { family: "Edu SA Beginner", url: "family=Edu+SA+Beginner:wght@400" },
+            "Patrick Hand": { family: "Patrick Hand", url: "family=Patrick+Hand" },
+            "Indie Flower": { family: "Indie Flower", url: "family=Indie+Flower" },
+            "Pangolin": { family: "Pangolin", url: "family=Pangolin" },
+            "Permanent Marker": { family: "Permanent Marker", url: "family=Permanent+Marker" },
+            "Roboto": { family: "Roboto", url: "family=Roboto:wght@400" },
+            "Open Sans": { family: "Open Sans", url: "family=Open+Sans:wght@400" },
+            "Montserrat": { family: "Montserrat", url: "family=Montserrat:wght@400" },
+            "Merriweather": { family: "Merriweather", url: "family=Merriweather:wght@400" },
+            "Playfair Display": { family: "Playfair Display", url: "family=Playfair+Display:wght@400" },
+            "Lora": { family: "Lora", url: "family=Lora:wght@400" },
+            "Lobster": { family: "Lobster", url: "family=Lobster" },
+            "Chewy": { family: "Chewy", url: "family=Chewy" },
+            "Fredoka": { family: "Fredoka", url: "family=Fredoka:wght@400" },
+            "Roboto Mono": { family: "Roboto Mono", url: "family=Roboto+Mono:wght@400" }
+        };
+
+        // --- 2. LOGIC ---
+        function init() {
+            const select = $("fontSelect");
+            select.innerHTML = ""; 
+            
+            for (const [key, value] of Object.entries(fonts)) {
+                let option = document.createElement("option");
+                option.value = key;
+                option.text = key;
+                select.appendChild(option);
+            }
+
+            $('seed').value = Math.random() * 10000; 
+            updateseed();
+            updatePreviewFont();
+        }
+
+        function save(filename, data) {
+            var blob = new Blob([data], {type: "image/svg+xml"});
+            if (window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveBlob(blob, filename);
+            } else {
+                var elem = window.document.createElement('a');
+                elem.href = window.URL.createObjectURL(blob);
+                elem.download = filename;
+                document.body.appendChild(elem);
+                elem.click();
+                document.body.removeChild(elem);
+            }
+        }
+
+        var seed = 1;
+
+        function random() {
+            var x = Math.sin(seed) * 10000;
+            seed += 1;
+            return x - Math.floor(x);
+        }
+
+        function uniform(min, max) {
+            var r = random();
+            return min + r * (max - min);
+        }
+
+        function rbool() {
+            return random() > 0.5;
+        }
+
+        function $(id) { return document.getElementById(id); }
+
+        function updateseed() {
+            $("_seed").value = Math.floor($("seed").value);
+            update();
+        }
+        function update_seed() {
+            $("seed").value = $("_seed").value;
+            updateseed();
+        }
+        function updatetabsize() {
+            $("_tabsize").innerText = $("tabsize").value + "%";
+            update();
+        }
+        function updatejitter() {
+            $("_jitter").innerText = $("jitter").value + "%";
+            update();
+        }
+        function updateScaleDisplay() {
+            $("scaleDisplay").innerText = Math.round($("fontScale").value * 100) + "%";
+            update();
+        }
+
+        function getCurrentFont() {
+            var select = $("fontSelect");
+            var key = select.value || "Edu SA Beginner"; 
+            return fonts[key];
+        }
+
+        function updatePreviewFont() {
+            var font = getCurrentFont();
+            var url = "https://fonts.googleapis.com/css2?" + font.url + "&subset=latin-ext&display=swap";
+            var link = document.getElementById("dynamicFontLink");
+            if (!link) {
+                link = document.createElement("link");
+                link.id = "dynamicFontLink";
+                link.rel = "stylesheet";
+                document.head.appendChild(link);
+            }
+            link.href = url;
+            update(); 
+        }
+
+        // --- Jigsaw Math ---
+        var a, b, c, d, e, t, j, flip, xi, yi, xn, yn, vertical, offset, width, height, radius;
+
+        function first() { e = uniform(-j, j); next(); }
+        function next() {
+            var flipold = flip; flip = rbool();
+            a = (flip == flipold ? -e : e);
+            b = uniform(-j, j); c = uniform(-j, j);
+            d = uniform(-j, j); e = uniform(-j, j);
+        }
+        function sl() { return vertical ? height / yn : width / xn; }
+        function sw() { return vertical ? width / xn : height / yn; }
+        function ol() { return offset + sl() * (vertical ? yi : xi); }
+        function ow() { return offset + sw() * (vertical ? xi : yi); }
+        function l(v) { return Math.round((ol() + sl() * v) * 100) / 100; }
+        function w(v) { return Math.round((ow() + sw() * v * (flip ? -1.0 : 1.0)) * 100) / 100; }
+
+        function p0l() { return l(0.0); } function p0w() { return w(0.0); }
+        function p1l() { return l(0.2); } function p1w() { return w(a); }
+        function p2l() { return l(0.5 + b + d); } function p2w() { return w(-t + c); }
+        function p3l() { return l(0.5 - t + b); } function p3w() { return w(t + c); }
+        function p4l() { return l(0.5 - 2.0 * t + b - d); } function p4w() { return w(3.0 * t + c); }
+        function p5l() { return l(0.5 + 2.0 * t + b - d); } function p5w() { return w(3.0 * t + c); }
+        function p6l() { return l(0.5 + t + b); } function p6w() { return w(t + c); }
+        function p7l() { return l(0.5 + b + d); } function p7w() { return w(-t + c); }
+        function p8l() { return l(0.8); } function p8w() { return w(e); }
+        function p9l() { return l(1.0); } function p9w() { return w(0.0); }
+
+        function parse_input() {
+            seed = parseInt($("seed").value);
+            t = parseFloat($("tabsize").value) / 200.0;
+            j = parseFloat($("jitter").value) / 100.0;
+            xn = parseInt($("xn").value);
+            yn = parseInt($("yn").value);
+        }
+
+        function gen_dh() {
+            var str = ""; vertical = 0;
+            for (yi = 1; yi < yn; ++yi) {
+                xi = 0; first(); str += "M " + p0l() + "," + p0w() + " ";
+                for (; xi < xn; ++xi) {
+                    str += "C " + p1l() + " " + p1w() + " " + p2l() + " " + p2w() + " " + p3l() + " " + p3w() + " ";
+                    str += "C " + p4l() + " " + p4w() + " " + p5l() + " " + p5w() + " " + p6l() + " " + p6w() + " ";
+                    str += "C " + p7l() + " " + p7w() + " " + p8l() + " " + p8w() + " " + p9l() + " " + p9w() + " ";
+                    next();
+                }
+            }
+            return str;
+        }
+
+        function gen_dv() {
+            var str = ""; vertical = 1;
+            for (xi = 1; xi < xn; ++xi) {
+                yi = 0; first(); str += "M " + p0w() + "," + p0l() + " ";
+                for (; yi < yn; ++yi) {
+                    str += "C " + p1w() + " " + p1l() + " " + p2w() + " " + p2l() + " " + p3w() + " " + p3l() + " ";
+                    str += "C " + p4w() + " " + p4l() + " " + p5w() + " " + p5l() + " " + p6w() + " " + p6l() + " ";
+                    str += "C " + p7w() + " " + p7l() + " " + p8w() + " " + p8l() + " " + p9w() + " " + p9l() + " ";
+                    next();
+                }
+            }
+            return str;
+        }
+
+        function gen_db() {
+            var str = "";
+            str += "M " + (offset + radius) + " " + (offset) + " ";
+            str += "L " + (offset + width - radius) + " " + (offset) + " ";
+            str += "A " + (radius) + " " + (radius) + " 0 0 1 " + (offset + width) + " " + (offset + radius) + " ";
+            str += "L " + (offset + width) + " " + (offset + height - radius) + " ";
+            str += "A " + (radius) + " " + (radius) + " 0 0 1 " + (offset + width - radius) + " " + (offset + height) + " ";
+            str += "L " + (offset + radius) + " " + (offset + height) + " ";
+            str += "A " + (radius) + " " + (radius) + " 0 0 1 " + (offset) + " " + (offset + height - radius) + " ";
+            str += "L " + (offset) + " " + (offset + radius) + " ";
+            str += "A " + (radius) + " " + (radius) + " 0 0 1 " + (offset + radius) + " " + (offset) + " ";
+            return str;
+        }
+
+        function gen_text() {
+            var rawText = $("labels").value;
+            var labels = rawText.split(',').map(item => item.trim());
+            var fontInfo = getCurrentFont();
+            var scale = parseFloat($("fontScale").value);
+            var pieceW = width / xn;
+            var pieceH = height / yn;
+            var fontSize = Math.min(pieceW, pieceH) * 0.4 * scale;
+
+            var svgContent = "";
+            var counter = 0;
+
+            for (var y = 0; y < yn; y++) {
+                for (var x = 0; x < xn; x++) {
+                    if (counter < labels.length) {
+                        var label = labels[counter];
+                        if(label !== "") {
+                            var cx = offset + (x * pieceW) + (pieceW / 2);
+                            var cy = offset + (y * pieceH) + (pieceH / 2);
+                            
+                            svgContent += '<text x="' + cx + '" y="' + cy + '" ' +
+                                          'font-family="\'' + fontInfo.family + '\', cursive, sans-serif" ' +
+                                          'font-size="' + fontSize + '" ' +
+                                          'text-anchor="middle" dominant-baseline="central" ' +
+                                          'fill="black">' + label + '</text>';
+                        }
+                        counter++;
+                    }
+                }
+            }
+            return svgContent;
+        }
+
+        function update() {
+            width = parseInt($("width").value);
+            height = parseInt($("height").value);
+            radius = parseFloat($("radius").value);
+            var strokeW = parseFloat($("strokeWidth").value) || 0.1;
+
+            var ratio = 1.0 * width / height;
+            
+            // Preview stroke is thicker for visibility
+            var previewStroke = 0.3; 
+
+            if (ratio > 1.5) {
+                radius = radius * 900 / width;
+                width = 900;
+                height = width / ratio;
+            } else {
+                radius = radius * 600 / height;
+                height = 600;
+                width = height * ratio;
+            }
+
+            $("puzzlecontainer").setAttribute("width", width + 11);
+            $("puzzlecontainer").setAttribute("height", height + 11);
+            offset = 5.5;
+
+            parse_input();
+            var ph = $("puzzlepath_h");
+            var pv = $("puzzlepath_v");
+            var pb = $("puzzlepath_b");
+
+            ph.setAttribute("d", gen_dh());
+            pv.setAttribute("d", gen_dv());
+            pb.setAttribute("d", gen_db());
+            
+            ph.setAttribute("stroke-width", previewStroke);
+            pv.setAttribute("stroke-width", previewStroke);
+            pb.setAttribute("stroke-width", previewStroke);
+
+            $("puzzle_labels").innerHTML = gen_text();
+        }
+
+        function generate() {
+            width = parseInt($("width").value);
+            height = parseInt($("height").value);
+            radius = parseFloat($("radius").value);
+            offset = 0.0;
+            parse_input();
+            var fontInfo = getCurrentFont();
+            var strokeW = parseFloat($("strokeWidth").value);
+
+            var data = "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.0\" ";
+            data += "width=\"" + width + "mm\" height=\"" + height + "mm\" viewBox=\"0 0 " + width + " " + height + "\">";
+            
+            data += "<style>";
+            var fontUrl = "https://fonts.googleapis.com/css2?" + fontInfo.url + "&amp;subset=latin-ext&amp;display=swap";
+            data += "@import url('" + fontUrl + "');";
+            data += "text { font-family: '" + fontInfo.family + "', cursive, sans-serif; }";
+            data += "</style>";
+
+            // Use the User defined stroke width (e.g. 0.01) for the download
+            data += "<path fill=\"none\" stroke=\"#ff0000\" stroke-width=\"" + strokeW + "\" d=\"";
+            data += gen_dh();
+            data += "\"></path>";
+            
+            data += "<path fill=\"none\" stroke=\"#ff0000\" stroke-width=\"" + strokeW + "\" d=\"";
+            data += gen_dv();
+            data += "\"></path>";
+            
+            data += "<path fill=\"none\" stroke=\"#ff0000\" stroke-width=\"" + strokeW + "\" d=\"";
+            data += gen_db();
+            data += "\"></path>";
+            
+            data += "<g id=\"labels\">";
+            data += gen_text();
+            data += "</g>";
+            data += "</svg>";
+
+            save("jigsaw.svg", data);
+        }
+    </script>
+</head>
+<body onload="init()">
+
+    <div class="config-panel">
+        <h2>🧩 Laser Puzzle Generator</h2>
+        
+        <div class="control-grid">
+            <div class="control-group">
+                <div class="divider">Layout</div>
+                
+                <div class="control-group">
+                    <label>Total Size (mm)</label>
+                    <div style="display:flex; gap:10px;">
+                        <input id="width" type="number" value="300" onchange="update()"> 
+                        <span style="align-self:center;">x</span>
+                        <input id="height" type="number" value="300" onchange="update()">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Grid (Cols x Rows)</label>
+                    <div style="display:flex; gap:10px;">
+                        <input id="xn" type="number" value="3" onchange="update()">
+                        <span style="align-self:center;">x</span>
+                        <input id="yn" type="number" value="3" onchange="update()">
+                    </div>
+                </div>
+
+                <div class="divider">Laser Settings</div>
+                
+                <div class="control-group">
+                    <label>Cut Line Width (mm)</label>
+                    <input id="strokeWidth" type="number" value="0.01" step="0.001" onchange="update()">
+                    <small style="color:#6b7280; font-size:0.75rem;">0.01mm or 0.001mm recommended for vectors.</small>
+                </div>
+                
+                <div class="divider">Puzzle Randomness</div>
+
+                <div class="control-group">
+                    <label>Tab Size: <span id="_tabsize" class="value-display">20%</span></label>
+                    <div class="range-wrapper">
+                        <input id="tabsize" type="range" value="20" min="10" max="30" step="0.1" oninput="updatetabsize()">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Jitter: <span id="_jitter" class="value-display">4%</span></label>
+                    <div class="range-wrapper">
+                        <input id="jitter" type="range" value="4" min="0" max="13" step="0.1" oninput="updatejitter()">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Random Seed</label>
+                    <div class="range-wrapper">
+                        <input id="seed" type="range" value="0" min="0" max="9999" step="1" oninput="updateseed()">
+                        <input id="_seed" type="number" value="0" onchange="update_seed()" style="width: 70px;">
+                    </div>
+                </div>
+                 <input id="radius" type="hidden" value="2.0" onchange="update()"/> 
+            </div>
+
+            <div class="control-group">
+                <div class="divider">Typography</div>
+
+                <div class="control-group">
+                    <label>Select Font (Google Fonts)</label>
+                    <select id="fontSelect" onchange="updatePreviewFont()"></select>
+                </div>
+
+                <div class="control-group">
+                    <label>Font Size: <span id="scaleDisplay" class="value-display">100%</span></label>
+                    <div class="range-wrapper">
+                        <small>10%</small>
+                        <input id="fontScale" type="range" value="1.0" min="0.1" max="2" step="0.1" oninput="updateScaleDisplay()">
+                        <small>200%</small>
+                    </div>
+                </div>
+
+                <div class="divider">Content</div>
+                <div class="control-group">
+                    <label>Labels (Comma Separated)</label>
+                    <textarea id="labels" placeholder="1, 2, 3..." onkeyup="update()">1, 2, 3, a, b, c, dog, cat, 1+1=3</textarea>
+                </div>
+
+                <div style="margin-top: auto;">
+                    <button onclick="generate()">Download SVG File</button>
+                </div>
+            </div>
+
+			<div class="credits">
+				Based on <a href="https://github.com/Draradech/jigsaw" target="_blank">code by Draradech</a> 
+				(<a href="https://draradech.github.io/jigsaw/" target="_blank">original</a>).<br>
+				Modified for laser cutting with AI assistance.<br>
+				Licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC-BY-SA 4.0</a>
+			</div>
+        </div>
+    </div>
+
+    <svg id="puzzlecontainer">
+        <path id="puzzlepath_h" fill="none" stroke="#dc2626"></path>
+        <path id="puzzlepath_v" fill="none" stroke="#dc2626"></path>
+        <path id="puzzlepath_b" fill="none" stroke="#dc2626"></path>
+        <g id="puzzle_labels"></g>
+    </svg>
+
+</body>
+</html>
