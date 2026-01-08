@@ -6,7 +6,11 @@ A simple, browser-based tool to generate labeled jigsaw puzzles optimized for la
 **Click here to run the generator:** ### 👉 [Open Jigsaw Generator](https://astbis.github.io/laser-jigsaw-generator/jigsaw_puzzle.html)
 
 *(No download required! Runs directly in your browser.)*
-
+---
+<p align="center">
+  <img src="screenshot01.png" width="45%" alt="Interface Screenshot">
+  <img src="screenshot02.png" width="45%" alt="Puzzle Preview Screenshot">
+</p>
 ---
 
 ## Why this was created
